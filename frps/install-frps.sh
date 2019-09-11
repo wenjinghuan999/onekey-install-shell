@@ -218,11 +218,13 @@ fun_getVer(){
 fun_download_file(){
     # download
     if [ ! -s ${str_program_dir}/${program_name} ]; then
-        rm -fr ${program_latest_filename} frp_${FRPS_VER}_linux_${ARCHS}
-        if ! wget --no-check-certificate -q ${program_latest_file_url} -O ${program_latest_filename}; then
-            echo -e " ${COLOR_RED}failed${COLOR_END}"
-            exit 1
+        if [ ! -f ${program_latest_filename} ]; then
+            if ! wget --no-check-certificate -q ${program_latest_file_url} -O ${program_latest_filename}; then
+                echo -e " ${COLOR_RED}failed${COLOR_END}"
+                exit 1
+            fi
         fi
+        rm -fr frp_${FRPS_VER}_linux_${ARCHS}
         tar xzf ${program_latest_filename}
         mv frp_${FRPS_VER}_linux_${ARCHS}/frps ${str_program_dir}/${program_name}
         rm -fr ${program_latest_filename} frp_${FRPS_VER}_linux_${ARCHS}
@@ -504,6 +506,10 @@ pre_install_clang(){
 # ====== install server ======
 install_program_server_clang(){
     [ ! -d ${str_program_dir} ] && mkdir -p ${str_program_dir}
+    rm -f ${str_program_dir}/${program_latest_filename}
+    if [ ! -z ${predownloaded_file} ]; then
+        cp ${predownloaded_file} ${str_program_dir}/
+    fi
     cd ${str_program_dir}
     echo "${program_name} install path:$PWD"
 
@@ -847,6 +853,7 @@ pre_install_packs
 shell_update
 # Initialization
 action=$1
+predownloaded_file=$2
 [  -z $1 ]
 case "$action" in
 install)
